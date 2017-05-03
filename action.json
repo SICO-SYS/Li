@@ -1,0 +1,28 @@
+{
+  "create": {
+    "qcloud": {
+      "cvm": "RunInstances"
+    },
+    "aws": {
+      "ec2": "None"
+    }
+  },
+
+  "listall": {
+    "qcloud": {
+      "cvm": "DescribeInstances",
+      "cdb": "DescribeCdbInstances"
+    },
+    "aws": {
+      "ec2": "None"
+    }
+  },
+
+  "region":{
+    "qcloud": {
+      "trade": "DescribeProductRegionList"
+    }
+  }
+
+  
+}
