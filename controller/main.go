@@ -12,19 +12,14 @@ import (
 	"encoding/json"
 	"google.golang.org/grpc"
 	"io/ioutil"
-	// "net/http"
-	// "net/url"
 
 	"github.com/SiCo-DevOps/Pb"
 	. "github.com/SiCo-DevOps/log"
-	// "github.com/SiCo-DevOps/public"
 )
 
 var (
 	S             = grpc.NewServer()
 	assert_Action map[string]interface{}
-	// nonce = public.GenNonce()
-	// ts    = public.TS()
 )
 
 type Cloud_API struct{}
@@ -50,11 +45,6 @@ func transAction(cloud string, bsns string, action string) (string, bool) {
 	}
 	return "error action", false
 }
-
-// func Cloud_POST(urlstr string, data *url.Values) {
-// 	http.PostForm(urlstr, data)
-
-// }
 
 func init() {
 	pb.RegisterCloud_APIServer(S, &Cloud_API{})

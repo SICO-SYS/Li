@@ -7,19 +7,23 @@
       "ec2": "None"
     }
   },
-
-  "listall": {
+  "createDemand": {
+    "cvm":"RunInstancesHour"
+  },
+  "list": {
     "qcloud": {
       "cvm": "DescribeInstances",
-      "cdb": "DescribeCdbInstances"
+      "cdb": "DescribeCdbInstances",
+      "image": "DescribeImages"
     },
     "aws": {
       "ec2": "None"
     }
   },
 
-  "region":{
+  "zone":{
     "qcloud": {
+      "cvm": "DescribeAvailabilityZones",
       "trade": "DescribeProductRegionList"
     }
   }

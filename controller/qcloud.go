@@ -9,7 +9,6 @@ Email:    sinerwr@gmail.com
 package controller
 
 import (
-	"encoding/json"
 	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
@@ -25,8 +24,9 @@ func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudR
 	if !ok {
 		return &pb.CloudResponse{Code: 2, Msg: cloud_action}, nil
 	}
-	// scheme := "https://"
-	host := in.Bsns + ".api.qcloud.com/v2/index.php"
+	scheme := "https://"
+	host := in.Bsns + ".api.qcloud.com"
+	path := "/v2/index.php"
 	params := make(map[string]string)
 	var sortparams = []string{}
 	params["Action"] = cloud_action
@@ -46,20 +46,17 @@ func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudR
 		sortparams = append(sortparams, param_value.Key)
 	}
 	sort.Strings(sortparams)
-	requeststr_ask := "?"
 	requeststr := ""
 	var paramstr = []string{}
 	for _, request_key := range sortparams {
 		paramstr = append(paramstr, request_key+"="+params[request_key])
 	}
 	requeststr += strings.Join(paramstr, "&")
-	signstr := "POST" + host + requeststr_ask + requeststr
+	signstr := "POST" + host + path + "?" + requeststr
 	signatrue := public.Hmac256ToBase64(in.CloudKey, signstr, true)
 
-	resp, _ := http.Post("https://"+host, "application/x-www-form-urlencoded", strings.NewReader(requeststr+"&Signature="+signatrue))
+	resp, _ := http.Post(scheme+host+path, "application/x-www-form-urlencoded", strings.NewReader(requeststr+"&Signature="+signatrue))
 	defer resp.Body.Close()
 	res, _ := ioutil.ReadAll(resp.Body)
-	var v json.RawMessage
-	json.Unmarshal(res, &v)
-	return &pb.CloudResponse{Code: 0, Msg: "Success", Data: v}, nil
+	return &pb.CloudResponse{Code: 0, Msg: "Success", Data: res}, nil
 }
