@@ -41,6 +41,8 @@ func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudR
 	sortparams = append(sortparams, "SecretId")
 	params["SignatureMethod"] = "HmacSHA256"
 	sortparams = append(sortparams, "SignatureMethod")
+	params["Version"] = "2017-03-12"
+	sortparams = append(sortparams, "Version")
 	for _, param_value := range in.Params {
 		params[param_value.Key] = param_value.Value
 		sortparams = append(sortparams, param_value.Key)
