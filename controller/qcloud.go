@@ -15,8 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/SiCo-DevOps/Pb"
-	"github.com/SiCo-DevOps/public"
+	"github.com/SiCo-Ops/Pb"
+	"github.com/SiCo-Ops/public"
 )
 
 func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudResponse, error) {

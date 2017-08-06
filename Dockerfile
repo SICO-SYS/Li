@@ -3,10 +3,10 @@ FROM golang:alpine
 MAINTAINER sine "sinerwr@gmail.com"
 
 RUN apk --update add git
-RUN go-wrapper download github.com/SiCo-DevOps/He
+RUN go-wrapper download github.com/SiCo-Ops/He
 RUN apk del git
 
-WORKDIR $GOPATH/src/github.com/SiCo-DevOps/He
+WORKDIR $GOPATH/src/github.com/SiCo-Ops/He
 
 RUN go-wrapper install
 

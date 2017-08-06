@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"io/ioutil"
 
-	"github.com/SiCo-DevOps/Pb"
-	. "github.com/SiCo-DevOps/log"
+	"github.com/SiCo-Ops/Pb"
+	. "github.com/SiCo-Ops/log"
 )
 
 var (
