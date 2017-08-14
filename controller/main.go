@@ -10,42 +10,42 @@ package controller
 
 import (
 	"encoding/json"
+	"github.com/getsentry/raven-go"
 	"google.golang.org/grpc"
 	"io/ioutil"
 
 	"github.com/SiCo-Ops/Pb"
-	. "github.com/SiCo-Ops/log"
 )
 
 var (
-	S             = grpc.NewServer()
-	assert_Action map[string]interface{}
+	RPCServer = grpc.NewServer()
+	getAction map[string]interface{}
 )
 
-type Cloud_API struct{}
+type CloudAPIService struct{}
 
-func transAction(cloud string, bsns string, action string) (string, bool) {
+func mapAction(cloud string, service string, action string) (string, bool) {
 	d, err := ioutil.ReadFile("action.json")
 	if err != nil {
-		LogFatalMsg(0, "controller.transAction")
+		raven.CaptureError(err, nil)
 	}
-	json.Unmarshal(d, &assert_Action)
+	json.Unmarshal(d, &getAction)
 
-	get_cloud, ok := assert_Action[action].(map[string]interface{})
+	getCloud, ok := getAction[action].(map[string]interface{})
 	if ok {
-		get_bsns, ok := get_cloud[cloud].(map[string]interface{})
+		getService, ok := getCloud[cloud].(map[string]interface{})
 		if ok {
-			value, ok := get_bsns[bsns].(string)
+			value, ok := getService[service].(string)
 			if ok {
 				return value, true
 			}
-			return "error bsns", false
+			return "Service unsupported", false
 		}
-		return "error cloud", false
+		return "Cloud unsupported", false
 	}
-	return "error action", false
+	return "Action unsupported", false
 }
 
 func init() {
-	pb.RegisterCloud_APIServer(S, &Cloud_API{})
+	pb.RegisterCloudAPIServiceServer(RPCServer, &CloudAPIService{})
 }

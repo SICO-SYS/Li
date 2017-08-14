@@ -19,38 +19,38 @@ import (
 	"github.com/SiCo-Ops/public"
 )
 
-func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudResponse, error) {
-	cloud_action, ok := transAction("qcloud", in.Bsns, in.Action)
+func (q *CloudAPIService) QcloudRPC(ctx context.Context, in *pb.CloudAPICall) (*pb.CloudAPIBack, error) {
+	action, ok := mapAction("qcloud", in.Service, in.Action)
 	if !ok {
-		return &pb.CloudResponse{Code: 2, Msg: cloud_action}, nil
+		return &pb.CloudAPIBack{Code: 2, Msg: action}, nil
 	}
 	scheme := "https://"
-	host := in.Bsns + ".api.qcloud.com"
+	host := in.Service + ".api.qcloud.com"
 	path := "/v2/index.php"
 	params := make(map[string]string)
 	var sortparams = []string{}
-	params["Action"] = cloud_action
+	params["Action"] = action
 	sortparams = append(sortparams, "Action")
-	params["Nonce"] = public.GenNonce()
+	params["Nonce"] = public.GenerateNonce()
 	sortparams = append(sortparams, "Nonce")
 	params["Region"] = in.Region
 	sortparams = append(sortparams, "Region")
-	params["Timestamp"] = public.TS()
+	params["Timestamp"] = public.CurrentTimeStamp()
 	sortparams = append(sortparams, "Timestamp")
 	params["SecretId"] = in.CloudId
 	sortparams = append(sortparams, "SecretId")
 	params["SignatureMethod"] = "HmacSHA256"
 	sortparams = append(sortparams, "SignatureMethod")
 
-	if in.Bsns == "cvm" {
+	if in.Service == "cvm" {
 		params["Version"] = "2017-03-12"
 		sortparams = append(sortparams, "Version")
 
 	}
 
-	for param_key, param_value := range in.Params {
-		params[param_key] = param_value
-		sortparams = append(sortparams, param_key)
+	for paramKey, paramValue := range in.Params {
+		params[paramKey] = paramValue
+		sortparams = append(sortparams, paramKey)
 	}
 	sort.Strings(sortparams)
 	requeststr := ""
@@ -65,5 +65,5 @@ func (q *Cloud_API) Qcloud(ctx context.Context, in *pb.CloudRequest) (*pb.CloudR
 	resp, _ := http.Post(scheme+host+path, "application/x-www-form-urlencoded", strings.NewReader(requeststr+"&Signature="+signatrue))
 	defer resp.Body.Close()
 	res, _ := ioutil.ReadAll(resp.Body)
-	return &pb.CloudResponse{Code: 0, Msg: "Success", Data: res}, nil
+	return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
 }
