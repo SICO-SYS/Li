@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 
 	"github.com/SiCo-Ops/Pb"
+	"github.com/SiCo-Ops/dao/mongo"
 )
 
 var (
@@ -47,5 +48,13 @@ func mapAction(cloud string, service string, action string) (string, bool) {
 }
 
 func init() {
+	defer func() {
+		recover()
+	}()
+	mongo.CloudEnsureIndexes()
 	pb.RegisterCloudAPIServiceServer(RPCServer, &CloudAPIService{})
+
+	if config.Sentry.Enable {
+		raven.SetDSN(config.Sentry.DSN)
+	}
 }
