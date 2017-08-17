@@ -20,16 +20,16 @@ import (
 )
 
 func (q *CloudAPIService) QcloudRPC(ctx context.Context, in *pb.CloudAPICall) (*pb.CloudAPIBack, error) {
-	action, ok := mapAction("qcloud", in.Service, in.Action)
-	if !ok {
-		return &pb.CloudAPIBack{Code: 2, Msg: action}, nil
-	}
+	// action, ok := mapAction("qcloud", in.Service, in.Action)
+	// if !ok {
+	// 	return &pb.CloudAPIBack{Code: 2, Msg: action}, nil
+	// }
 	scheme := "https://"
 	host := in.Service + ".api.qcloud.com"
 	path := "/v2/index.php"
 	params := make(map[string]string)
 	var sortparams = []string{}
-	params["Action"] = action
+	params["Action"] = in.Action
 	sortparams = append(sortparams, "Action")
 	params["Nonce"] = public.GenerateNonce()
 	sortparams = append(sortparams, "Nonce")
