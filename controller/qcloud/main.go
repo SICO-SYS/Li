@@ -33,7 +33,8 @@ func SignatureString(service, action, region, secretId string, extraParams map[s
 	params["SignatureMethod"] = "HmacSHA256"
 	sortparams = append(sortparams, "SignatureMethod")
 
-	if service == "cvm" {
+	switch service {
+	case "cvm":
 		params["Version"] = "2017-03-12"
 		sortparams = append(sortparams, "Version")
 	}
@@ -60,9 +61,15 @@ func Signature(requestUrl, requestParamString, secretKey string) string {
 	return signatrue
 }
 
+func URL(scheme, service, region string) string {
+	switch service {
+	default:
+		return scheme + service + ".api.qcloud.com/v2/index.php"
+	}
+}
+
 func Request(requestUrl, requestParamString, signature string) ([]byte, error) {
-	scheme := "https://"
-	resp, err := http.Post(scheme+requestUrl, "application/x-www-form-urlencoded", strings.NewReader(requestParamString+"&Signature="+signature))
+	resp, err := http.Post(requestUrl, "application/x-www-form-urlencoded", strings.NewReader(requestParamString+"&Signature="+signature))
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
