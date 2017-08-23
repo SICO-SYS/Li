@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/SiCo-Ops/Li/controller/aliyun"
+	_ "github.com/SiCo-Ops/Li/controller/aws"
 	"github.com/SiCo-Ops/Li/controller/qcloud"
 	"github.com/SiCo-Ops/Pb"
 )

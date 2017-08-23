@@ -8,23 +8,104 @@ Email:    sinerwr@gmail.com
 
 package aws
 
-// import (
-// 	"fmt"
+import (
+	"net/url"
+	"sort"
+	"strings"
 
-// 	"github.com/aws/aws-sdk-go/aws"
-// 	"github.com/aws/aws-sdk-go/aws/session"
-// 	"github.com/aws/aws-sdk-go/service/ec2"
-// )
+	"github.com/SiCo-Ops/public"
+)
 
-// func init() {
-// 	// Create new EC2 client
-// 	ec2Svc := ec2.New(session.New(&aws.Config{Region: aws.String("us-west-2")}))
+var (
+	amzDate      string = public.CurrentYYYMMDD()
+	amzDatetime  string = public.CurrentYYYMMDDTHHMMSSZ()
+	amzAlgorithm string = "AWS4-HMAC-SHA256"
+)
 
-// 	// Call to get detailed information on each instance
-// 	result, err := ec2Svc.DescribeInstances(nil)
-// 	if err != nil {
-// 		fmt.Println("Error", err)
-// 	} else {
-// 		fmt.Println("Success", result)
-// 	}
-// }
+func URLEncode(signstr string) string {
+	result := url.QueryEscape(signstr)
+	result = strings.Replace(result, "+", "%20", -1)
+	return result
+}
+
+func HOST(service, region string) string {
+	switch service {
+	case "devpay":
+		return "ls.amazonaws.com"
+	case "iam":
+		return "iam.amazonaws.com"
+	case "s3":
+		switch region {
+		case "us-east-1":
+			return "s3.amazonaws.com"
+		default:
+			return service + "-" + region + ".amazonaws.com"
+		}
+	default:
+		return service + "." + region + ".amazonaws.com"
+	}
+}
+
+func AMZCredentialScope(service, region string) string {
+	return strings.Join([]string{amzDate, region, service, "aws4_request"}, "/")
+}
+
+func CanonicalQueryString(service, action, region, secretId string, extraParams map[string]string) string {
+	params := make(map[string]string)
+	var sortparams = []string{}
+	params["Action"] = action
+	sortparams = append(sortparams, "Action")
+	params["X-Amz-Algorithm"] = amzAlgorithm
+	sortparams = append(sortparams, "SignatureMethod")
+	params["X-Amz-Credential"] = secretId + "/" + AMZCredentialScope(service, region)
+	sortparams = append(sortparams, "X-Amz-Credential")
+	params["X-Amz-Date"] = amzDatetime
+	sortparams = append(sortparams, "X-Amz-Date")
+	params["X-Amz-SignedHeaders"] = "host"
+	sortparams = append(sortparams, "X-Amz-SignedHeaders")
+
+	switch service {
+	case "s3":
+		params["Version"] = "2006-03-01"
+		sortparams = append(sortparams, "Version")
+	default:
+		params["Version"] = "2016-11-15"
+		sortparams = append(sortparams, "Version")
+	}
+
+	for paramKey, paramValue := range extraParams {
+		params[paramKey] = paramValue
+		sortparams = append(sortparams, paramKey)
+	}
+	sort.Strings(sortparams)
+	var paramstr = []string{}
+	for _, request_key := range sortparams {
+		paramstr = append(paramstr, URLEncode(request_key)+"="+URLEncode(params[request_key]))
+	}
+	return strings.Join(paramstr, "&")
+}
+
+func CanonicalHost(host string) string {
+	return "host:" + host + "\n"
+}
+
+func CanonicalRequest(queryString, canonicalhost string) string {
+	return strings.Join([]string{"GET", "/", queryString, canonicalhost, "host", public.EncryptWithSha256("")}, "\n")
+}
+
+func SignatureString(credentialScope, canonicalRequest string) string {
+	return strings.Join([]string{amzAlgorithm, amzDatetime, credentialScope, public.EncryptWithSha256(canonicalRequest)}, "\n")
+}
+
+func SignatureKey(secretKey, datestamp, region, service string) []byte {
+	key := public.EncryptBytesWithHmacSha256([]byte("AWS4"+secretKey), datestamp)
+	key = public.EncryptBytesWithHmacSha256(key, region)
+	key = public.EncryptBytesWithHmacSha256(key, service)
+	key = public.EncryptBytesWithHmacSha256(key, "aws4_request")
+	return key
+}
+
+func Signature(signatureString string, signatureKey []byte) string {
+	signatrue := public.EncryptBytesWithHmacSha256(signatureKey, signatureString)
+	return public.EncodingBytesToHex(signatrue)
+}
