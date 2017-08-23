@@ -4,18 +4,7 @@ go:
 before_install:
 - cp config.sample.json config.json
 install:
-  - go get github.com/SiCo-Ops/Li
-# - go get github.com/garyburd/redigo/redis
-# - go get gopkg.in/mgo.v2
-# - go get github.com/go-sql-driver/mysql
-# - go get github.com/jinzhu/gorm
-# - go get github.com/gorilla/mux
-# - go get github.com/streadway/amqp
-# - go get google.golang.org/grpc
-# - go get github.com/SiCo-Ops/cfg
-# - go get github.com/SiCo-Ops/log
-# - go get github.com/SiCo-Ops/dao
-# - go get github.com/SiCo-Ops/Pb
+- go get github.com/SiCo-Ops/Li
 notifications:
   slack:
-    secure: OfZGTxUqzAtpVWkHInUzC8gy5wtbgG3sP9M1pVSJrWdBd3ZV5e82jvHMy2aNvLlBDN/VLm07fhyHEmYNKueHI5e1gKMXXmC6xsisYNx5GrxX43Tz9IigizvxBUcfC3H+rUCAri2RaTbuNmxq0aam2qBObKW17Hx5/LX3o1lpS2/ETrGN9QRQWDaY6MYkDqNG/GwVRerJEFJeJkezRSOiJBYxSxekNu3MbWG2yvewUzYKPXhnYc5TehuELcbg/JOYxnm3GP2iU4eUCn5K5fSjXgxu1vuRgT1FWWKhuDJtlykRyiUhKz8YhHlSUJqODlOUJBg1yIKyIZkZMW9jWPCX9QXmMwR6ELgcnTBODxbhc458mCm1pwlRNLNeHKRPwftsEtdKW8HKrlxVwiIphByaN1ZAJueHjQL/5E8H/1qfQO3QJ0qEVUpYkTcb9uCUojmyCJi11z/+djPYCXwvxYPiO++T2iVp7uqi/F2YX9rUqSuX2hC4ZOLNrwYwffrW64Dd864TEPfrSC6vLQZgg/Qz1KGHHmHrWVTlAaEePfzVKddSn4Cymhv2YqVoFEGHUE8CQtD7YYMpc3JlvsqSkZhV8YmdkBXwpQKNVm+sMnrrlH18/GWoRA+gagvM2hnfdVPvXWkq1GeD4uyQnHqt/GzM+wvfJmo/hE41NWiM38aIiJU=
+    secure: fLZk4rHTR/EYL4xjGnQd3Vy3O9MVEldiNnTcCxNC5/XvIZcJGdLGAZkr0jA3g5p2nQRJBS82+Jvtn/AIZuHay2iwRbxQQ4LuqPRyaqnU35oiRUONQM//T6XUGu1tkd9GhsEzkWgaVxJ1+UksM5nHGvVnX1Yr8HN6fX1+Rv/ij1Ph7t/RjWL/FxJYVgYGzZEfhBYTTErTgY7j9slobTiavmO8bk5NUIz9OgtY2ybKPyLR2fATvAyI53kDLRAYBhgdTTdjpmjdMeW91B1w0FFJ/SrVoqfPhTGjiSZtajqzqmyGOpL5wAIuufxKkt7wOLrhbLm9TBVav2FbLC12Uupsyvp70JVk87GB0r8nKzkFWpseHVYDA4TbDq5wtLjc5V11xbGgjSX9/2kdhGL4jmlHLksA6amAQaZPhykdgGgkwKunqfBWsjlJCWNHE/K5HGLxgn9bPBLX7/EurKNxg7kJy9WWjH1V3z9aa9hXYD59zJrYJ3F8KlGr5bK2IjMjWbo4sS/yfd3XGeTyoLcv3d6Uk2TkyrDMmVO9oV7MwGkIsbGPFmsm8/FYH8GF+mWYBVqHasVp6swBoEJ6gtgxIiY9BxYr/vDtgsR5e/+X20RFjkQBiPRL3YAt17LwPJ34TBYvCtXSgHcSTyXlfJ14tbQ+pJGJjj2+Vl4O2W5O5pLPj5w=
