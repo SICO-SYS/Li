@@ -61,15 +61,15 @@ func Signature(requestUrl, requestParamString, secretKey string) string {
 	return signatrue
 }
 
-func URL(scheme, service, region string) string {
+func Host(service, region string) string {
 	switch service {
 	default:
-		return scheme + service + ".api.qcloud.com/v2/index.php"
+		return service + ".api.qcloud.com/v2/index.php"
 	}
 }
 
 func Request(requestUrl, requestParamString, signature string) ([]byte, error) {
-	resp, err := http.Post(requestUrl, "application/x-www-form-urlencoded", strings.NewReader(requestParamString+"&Signature="+signature))
+	resp, err := http.Post("https://"+requestUrl, "application/x-www-form-urlencoded", strings.NewReader(requestParamString+"&Signature="+signature))
 	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
