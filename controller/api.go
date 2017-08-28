@@ -9,13 +9,15 @@ Email:    sinerwr@gmail.com
 package controller
 
 import (
+	"encoding/xml"
+	"fmt"
 	"github.com/getsentry/raven-go"
 	"golang.org/x/net/context"
 
-	"github.com/SiCo-Ops/Li/controller/aliyun"
-	"github.com/SiCo-Ops/Li/controller/aws"
-	"github.com/SiCo-Ops/Li/controller/qcloud"
 	"github.com/SiCo-Ops/Pb"
+	"github.com/SiCo-Ops/cloud-go-sdk/aliyun"
+	"github.com/SiCo-Ops/cloud-go-sdk/aws"
+	"github.com/SiCo-Ops/cloud-go-sdk/qcloud"
 )
 
 var (
@@ -28,20 +30,20 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 	}()
 	switch in.Cloud {
 	case "qcloud":
-		requestUrl = qcloud.Host(in.Service, in.Region)
-		requestParamString = qcloud.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
-		signature = qcloud.Signature(requestUrl, requestParamString, in.CloudKey)
-		res, err := qcloud.Request(requestUrl, requestParamString, signature)
+		requestUrl = qcloudSDK.Host(in.Service, in.Region)
+		requestParamString = qcloudSDK.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
+		signature = qcloudSDK.Signature(requestUrl, requestParamString, in.CloudKey)
+		res, err := qcloudSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
 			return &pb.CloudAPIBack{Code: 1, Msg: "qcloud maybe probl"}, nil
 		}
 		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
 	case "aliyun":
-		requestUrl = aliyun.URL("http://", in.Service, in.Region)
-		requestParamString = aliyun.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
-		signature = aliyun.Signature(requestParamString, in.CloudKey)
-		res, err := aliyun.Request(requestUrl, requestParamString, signature)
+		requestUrl = aliyunSDK.URL("http://", in.Service, in.Region)
+		requestParamString = aliyunSDK.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
+		signature = aliyunSDK.Signature(requestParamString, in.CloudKey)
+		res, err := aliyunSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
 			return &pb.CloudAPIBack{Code: 2, Msg: "Aliyun maybe probl"}, nil
@@ -57,11 +59,14 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		if region == "" {
 			region = "us-east-1"
 		}
-		host := aws.Host(service, region)
+		host := awsSDK.Host(service, region)
 		requestUrl = "https://" + host
-		requestParamString = aws.CanonicalQueryString(service, action, region, secretId, extraParams)
-		signature = aws.Signature(aws.SignatureString(aws.CredentialScope(service, region), aws.CanonicalRequest(requestParamString, aws.CanonicalHost(host))), aws.SignatureKey(secretKey, region, service))
-		res, err := aws.Request(requestUrl, requestParamString, signature)
+		requestParamString = awsSDK.CanonicalQueryString(service, action, region, secretId, extraParams)
+		signature = awsSDK.Signature(awsSDK.SignatureString(awsSDK.CredentialScope(service, region), awsSDK.CanonicalRequest(requestParamString, awsSDK.CanonicalHost(host))), awsSDK.SignatureKey(secretKey, region, service))
+		res, err := awsSDK.Request(requestUrl, requestParamString, signature)
+		var v interface{}
+		xml.Unmarshal(res, &v)
+		fmt.Println(v)
 		if err != nil {
 			raven.CaptureError(err, nil)
 			return &pb.CloudAPIBack{Code: 2, Msg: "AWS maybe probl"}, nil
