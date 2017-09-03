@@ -9,8 +9,6 @@ Email:    sinerwr@gmail.com
 package controller
 
 import (
-	"encoding/xml"
-	"fmt"
 	"github.com/getsentry/raven-go"
 	"golang.org/x/net/context"
 
@@ -28,11 +26,17 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 	defer func() {
 		recover()
 	}()
+	action := in.Action
+	service := in.Service
+	region := in.Region
+	secretId := in.CloudId
+	secretKey := in.CloudKey
+	extraParams := in.Params
 	switch in.Cloud {
 	case "qcloud":
-		requestUrl = qcloudSDK.Host(in.Service, in.Region)
-		requestParamString = qcloudSDK.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
-		signature = qcloudSDK.Signature(requestUrl, requestParamString, in.CloudKey)
+		requestUrl = qcloudSDK.Host(service, region)
+		requestParamString = qcloudSDK.SignatureString(service, action, region, secretId, extraParams)
+		signature = qcloudSDK.Signature(requestUrl, requestParamString, secretKey)
 		res, err := qcloudSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
@@ -40,9 +44,9 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		}
 		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
 	case "aliyun":
-		requestUrl = aliyunSDK.URL("http://", in.Service, in.Region)
-		requestParamString = aliyunSDK.SignatureString(in.Service, in.Action, in.Region, in.CloudId, in.Params)
-		signature = aliyunSDK.Signature(requestParamString, in.CloudKey)
+		requestUrl = aliyunSDK.URL("http://", service, region)
+		requestParamString = aliyunSDK.SignatureString(service, action, region, secretId, extraParams)
+		signature = aliyunSDK.Signature(requestParamString, secretKey)
 		res, err := aliyunSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
@@ -50,23 +54,17 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		}
 		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
 	case "aws":
-		action := in.Action
-		service := in.Service
-		region := in.Region
-		secretId := in.CloudId
-		secretKey := in.CloudKey
-		extraParams := in.Params
 		if region == "" {
 			region = "us-east-1"
 		}
+		amzDate, amzDatetime := awsSDK.Dates()
+
 		host := awsSDK.Host(service, region)
 		requestUrl = "https://" + host
-		requestParamString = awsSDK.CanonicalQueryString(service, action, region, secretId, extraParams)
-		signature = awsSDK.Signature(awsSDK.SignatureString(awsSDK.CredentialScope(service, region), awsSDK.CanonicalRequest(requestParamString, awsSDK.CanonicalHost(host))), awsSDK.SignatureKey(secretKey, region, service))
+		credentialScope := awsSDK.CredentialScope(amzDate, service, region)
+		requestParamString = awsSDK.CanonicalQueryString(service, action, credentialScope, secretId, amzDatetime, extraParams)
+		signature = awsSDK.Signature(awsSDK.SignatureString(credentialScope, awsSDK.CanonicalRequest(requestParamString, awsSDK.CanonicalHost(host)), amzDatetime), awsSDK.SignatureKey(secretKey, region, service, amzDate))
 		res, err := awsSDK.Request(requestUrl, requestParamString, signature)
-		var v interface{}
-		xml.Unmarshal(res, &v)
-		fmt.Println(v)
 		if err != nil {
 			raven.CaptureError(err, nil)
 			return &pb.CloudAPIBack{Code: 2, Msg: "AWS maybe probl"}, nil
