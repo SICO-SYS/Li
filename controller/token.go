@@ -26,7 +26,7 @@ type UserThirdparty struct {
 func (c *CloudTokenService) TokenSet(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
 	collection := "cloud.token." + strings.ToLower(in.Cloud)
 	v := &UserThirdparty{in.AAATokenID, in.Name, in.Id, in.Key}
-	ok := mongo.Insert(mongo.CloudConn, v, collection)
+	ok := mongo.Insert(cloudDB, v, collection)
 	if ok {
 		return &pb.CloudTokenBack{Id: in.Id, Key: in.Key}, nil
 	}
@@ -36,7 +36,7 @@ func (c *CloudTokenService) TokenSet(ctx context.Context, in *pb.CloudTokenCall)
 func (c *CloudTokenService) TokenGet(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
 	collection := mongo.CollectionCloudTokenName(strings.ToLower(in.Cloud))
 	query := mongo.Querys{"id": in.AAATokenID, "name": in.Name}
-	result := query.FindOne(mongo.CloudConn, collection)
+	result := query.FindOne(cloudDB, collection)
 	cloudid, ok := result["cloudid"].(string)
 	cloudkey, _ := result["cloudkey"].(string)
 	if ok {

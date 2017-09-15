@@ -12,11 +12,10 @@ import (
 	"net"
 
 	"github.com/SiCo-Ops/Li/controller"
-	"github.com/SiCo-Ops/cfg"
 )
 
 func Run() {
-	lis, _ := net.Listen("tcp", cfg.Config.RPCPort.Li)
+	lis, _ := net.Listen("tcp", "0.0.0.0:"+controller.ServePort())
 	controller.RPCServer.Serve(lis)
 }
 
