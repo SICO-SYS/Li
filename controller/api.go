@@ -22,10 +22,9 @@ var (
 	requestUrl, requestParamString, signature string
 )
 
+type CloudAPIService struct{}
+
 func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (*pb.CloudAPIBack, error) {
-	defer func() {
-		recover()
-	}()
 	action := in.Action
 	service := in.Service
 	region := in.Region
@@ -40,9 +39,9 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		res, err := qcloudSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
-			return &pb.CloudAPIBack{Code: 1, Msg: "qcloud maybe probl"}, nil
+			return &pb.CloudAPIBack{Code: 2001}, nil
 		}
-		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
+		return &pb.CloudAPIBack{Code: 0, Data: res}, nil
 	case "aliyun":
 		requestUrl = aliyunSDK.URL("http://", service, region)
 		requestParamString = aliyunSDK.SignatureString(service, action, region, secretId, extraParams)
@@ -50,9 +49,9 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		res, err := aliyunSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
-			return &pb.CloudAPIBack{Code: 2, Msg: "Aliyun maybe probl"}, nil
+			return &pb.CloudAPIBack{Code: 2001}, nil
 		}
-		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
+		return &pb.CloudAPIBack{Code: 0, Data: res}, nil
 	case "aws":
 		if region == "" {
 			region = "us-east-1"
@@ -67,10 +66,10 @@ func (q *CloudAPIService) RequestRPC(ctx context.Context, in *pb.CloudAPICall) (
 		res, err := awsSDK.Request(requestUrl, requestParamString, signature)
 		if err != nil {
 			raven.CaptureError(err, nil)
-			return &pb.CloudAPIBack{Code: 2, Msg: "AWS maybe probl"}, nil
+			return &pb.CloudAPIBack{Code: 2001}, nil
 		}
-		return &pb.CloudAPIBack{Code: 0, Msg: "Success", Data: res}, nil
+		return &pb.CloudAPIBack{Code: 0, Data: res}, nil
 	default:
-		return &pb.CloudAPIBack{Code: 2, Msg: "Cloud Not support yet"}, nil
+		return &pb.CloudAPIBack{Code: 2002}, nil
 	}
 }

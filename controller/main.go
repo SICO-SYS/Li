@@ -11,6 +11,7 @@ package controller
 import (
 	"github.com/getsentry/raven-go"
 	"google.golang.org/grpc"
+	"log"
 
 	"github.com/SiCo-Ops/Pb"
 	"github.com/SiCo-Ops/cfg/v2"
@@ -20,13 +21,10 @@ import (
 
 var (
 	config              cfg.ConfigItems
-	configPool          = redis.Pool("", "", "")
+	configPool          = redis.NewPool()
 	RPCServer           = grpc.NewServer()
-	cloudDB, cloudDBErr = mongo.Dial("", "", "")
+	cloudDB, cloudDBErr = mongo.NewDial()
 )
-
-type CloudAPIService struct{}
-type CloudTokenService struct{}
 
 func ServePort() string {
 	return config.RpcLiPort
@@ -42,13 +40,22 @@ func init() {
 		cfg.Unmarshal(data, &config)
 	}
 
-	configPool = redis.Pool(config.RedisConfigHost, config.RedisConfigPort, config.RedisConfigAuth)
-	configs, _ := redis.Hgetall(configPool, "system.config")
+	configPool = redis.InitPool(config.RedisConfigHost, config.RedisConfigPort, config.RedisConfigAuth)
+	configs, err := redis.Hgetall(configPool, "system.config")
+	if err != nil {
+		log.Fatalln(err)
+	}
 	cfg.Map2struct(configs, &config)
 
-	cloudDB, cloudDBErr = mongo.Dial(config.MongoCloudAddress, config.MongoCloudUsername, config.MongoCloudPassword)
+	cloudDB, cloudDBErr = mongo.InitDial(config.MongoCloudAddress, config.MongoCloudUsername, config.MongoCloudPassword)
+	if cloudDBErr != nil {
+		log.Fatalln(cloudDBErr)
+	}
+	err = mongo.CloudEnsureIndexes(cloudDB)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	mongo.CloudEnsureIndexes(cloudDB)
 	pb.RegisterCloudAPIServiceServer(RPCServer, &CloudAPIService{})
 	pb.RegisterCloudTokenServiceServer(RPCServer, &CloudTokenService{})
 

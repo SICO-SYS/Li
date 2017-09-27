@@ -10,7 +10,6 @@ package controller
 
 import (
 	"golang.org/x/net/context"
-	"strings"
 
 	"github.com/SiCo-Ops/Pb"
 	"github.com/SiCo-Ops/dao/mongo"
@@ -23,24 +22,29 @@ type UserThirdparty struct {
 	CloudKey string "cloudkey"
 }
 
-func (c *CloudTokenService) TokenSet(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
-	collection := "cloud.token." + strings.ToLower(in.Cloud)
+type CloudTokenService struct{}
+
+func (c *CloudTokenService) SetRPC(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
+	collection := mongo.CollectionCloudTokenName(in.Cloud)
 	v := &UserThirdparty{in.AAATokenID, in.Name, in.Id, in.Key}
-	ok := mongo.Insert(cloudDB, v, collection)
-	if ok {
-		return &pb.CloudTokenBack{Id: in.Id, Key: in.Key}, nil
+	err := mongo.Insert(cloudDB, collection, v)
+	if err != nil {
+		return &pb.CloudTokenBack{Code: 202}, nil
 	}
-	return &pb.CloudTokenBack{Id: "", Key: ""}, nil
+	return &pb.CloudTokenBack{Code: 0}, nil
 }
 
-func (c *CloudTokenService) TokenGet(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
-	collection := mongo.CollectionCloudTokenName(strings.ToLower(in.Cloud))
+func (c *CloudTokenService) GetRPC(ctx context.Context, in *pb.CloudTokenCall) (*pb.CloudTokenBack, error) {
+	collection := mongo.CollectionCloudTokenName(in.Cloud)
 	query := mongo.Querys{"id": in.AAATokenID, "name": in.Name}
-	result := query.FindOne(cloudDB, collection)
+	result, err := mongo.FindOne(cloudDB, collection, query)
+	if err != nil {
+		return &pb.CloudTokenBack{Code: 202}, nil
+	}
 	cloudid, ok := result["cloudid"].(string)
 	cloudkey, _ := result["cloudkey"].(string)
-	if ok {
-		return &pb.CloudTokenBack{Id: cloudid, Key: cloudkey}, nil
+	if ok && cloudid != "" {
+		return &pb.CloudTokenBack{Code: 0, Id: cloudid, Key: cloudkey}, nil
 	}
-	return &pb.CloudTokenBack{Id: "", Key: ""}, nil
+	return &pb.CloudTokenBack{Code: 2003}, nil
 }
