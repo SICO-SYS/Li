@@ -41,6 +41,9 @@ func (c *CloudTokenService) GetRPC(ctx context.Context, in *pb.CloudTokenCall) (
 	if err != nil {
 		return &pb.CloudTokenBack{Code: 202}, nil
 	}
+	if result == nil {
+		return &pb.CloudTokenBack{Code: 2003}, nil
+	}
 	cloudid, ok := result["cloudid"].(string)
 	cloudkey, _ := result["cloudkey"].(string)
 	if ok && cloudid != "" {
